@@ -1,0 +1,74 @@
+#include <iostream>
+#include <vector>
+#include <queue>
+#include <functional> // Include for std::function
+
+// Tree node
+struct Node {
+    int left;
+    int right;
+    char data;
+    unsigned freq;
+};
+
+// Function to compare two tree nodes
+bool compare(const Node& lhs, const Node& rhs) {
+    return lhs.freq > rhs.freq;
+}
+
+// Print the Huffman codes using indices
+void printCodes(const std::vector<Node>& nodes, int index, std::string str) {
+    if (index == -1) return;
+    
+    // If this is a leaf node, print it
+    if (nodes[index].left == -1 && nodes[index].right == -1) {
+        std::cout << nodes[index].data << ": " << str << std::endl;
+    } else {
+        printCodes(nodes, nodes[index].left, str + "0");
+        printCodes(nodes, nodes[index].right, str + "1");
+    }
+}
+
+// Function to build the Huffman tree and print codes
+void buildHuffmanTree(const std::vector<char>& data, const std::vector<int>& freq, size_t size) {
+    std::vector<Node> nodes(2 * size, {-1, -1, '$', 0});
+    std::priority_queue<int, std::vector<int>, std::function<bool(int, int)>> minHeap(
+        [&nodes](int l, int r) { return nodes[l].freq > nodes[r].freq; });
+
+    // Initialize leaves
+    for (size_t i = 0; i < size; ++i) {
+        nodes[i].left = -1;
+        nodes[i].right = -1;
+        nodes[i].data = data[i];
+        nodes[i].freq = freq[i];
+        minHeap.push(i);
+    }
+    
+    // Build the Huffman tree
+    int idx = size;
+    while (minHeap.size() > 1) {
+        int left = minHeap.top();
+        minHeap.pop();
+        int right = minHeap.top();
+        minHeap.pop();
+
+        nodes[idx].freq = nodes[left].freq + nodes[right].freq;
+        nodes[idx].left = left;
+        nodes[idx].right = right;
+        minHeap.push(idx);
+        idx++;
+    }
+    
+    // Print the codes
+    printCodes(nodes, idx - 1, "");
+}
+
+int main() {
+    std::vector<char> data = {'a', 'b', 'c', 'd', 'e', 'f'};
+    std::vector<int> freq = {5, 9, 12, 13, 16, 45};
+    size_t size = data.size();
+    
+    buildHuffmanTree(data, freq, size);
+    
+    return 0;
+}
